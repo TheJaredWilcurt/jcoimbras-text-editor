@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>JCoimbras' Text Editor</title>
+    <style>
+      *,
+      *:before,
+      *:after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        border: 0px;
+        margin: 0px;
+        padding: 0px;
+        font-family: sans-serif;
+        font-size: 0px;
+      }
+
+      h1 {
+        font-size: 30px;
+        text-align: center;
+      }
+
+      .half {
+        display: inline-block;
+        width: 50%;
+        text-align: center;
+      }
+
+      label {
+        display: block;
+        padding: 10px;
+        font-size: 20px;
+        font-weight: bold
+      }
+
+      textarea,
+      output {
+        display: inline-block;
+        width: 90%;
+        height: 300px;
+        border-radius: 10px;
+        margin: 0px auto;
+        padding: 10px;
+        font-size: 15px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      textarea {
+        border: 1px solid #000;
+      }
+      output {
+        background: #DDD;
+        border-radius: 10px;
+      }
+
+      p {
+        padding: 10px;
+        font-size: 14px;
+      }
+
+      button {
+        margin: 10px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <h1>JCoimbras Text Editor!</h1>
+
+    <div class="half">
+      <label for="input">Input</label>
+      <textarea id="input"></textarea>
+      <button id="save">
+        Save
+      </button>
+    </div>
+
+    <div class="half">
+      <label for="output">Output</label>
+      <output id="output"></output>
+      <button id="load">
+        Load
+      </button>
+    </div>
+
+    <p>
+      File will be called <strong>NW.js is cool.txt</strong> and it will be on your desktop.
+      <button id="delete">Delete File</button>
+    </p>
+
+    <div>
+      <button onclick="nw.Window.get().showDevTools()">Dev Tools</button>
+      <button onclick="nw.Window.get().reloadIgnoringCache()">Reload</button>
+    </div>
+
+    <script>
+      // pull in Node's file system, file path, and operating system modules.
+      const fs = require('fs');
+      const path = require('path');
+      const os = require('os');
+
+      // Create a string of the file path based on the currently logged in user
+      const desktopFile = path.join(os.homedir(), 'Desktop', 'NW.js is cool.txt');
+
+      // Find elements in the DOM
+      const inputBox = document.getElementById('input');
+      const outputBox = document.getElementById('output');
+      const saveButton = document.getElementById('save');
+      const loadButton = document.getElementById('load');
+      const deleteButton = document.getElementById('delete');
+
+      // Declare a function to be called later
+      function save () {
+        // Get the contents of the input textarea, or an empty string
+        const contents = inputBox.value || '';
+
+        // write the contents to a disck, log an error if there was a problem
+        fs.writeFile(desktopFile, contents, function (err) {
+          if (err) {
+            console.log('There was an error saving the file', err);
+          }
+        });
+      }
+
+      // Declare a function to be called later
+      function load () {
+        // Check if the file exists
+        if (fs.existsSync(desktopFile)) {
+          // attempt to read it's data
+          fs.readFile(desktopFile, function (err, data) {
+            if (err) {
+              console.log('There was an error loading the file', err);
+            }
+            // convert the binary data that was read in to a UTF-16 string of text
+            data = String(data);
+            outputBox.value = data;
+          });
+        } else {
+          // Updte the DOM to alert the user of the error.
+          outputBox.value = 'Could not load the file';
+        }
+      }
+
+      // Declare a function to be called later
+      function deleteFile () {
+        // Check if file exists before attempting to delete it
+        if (fs.existsSync(desktopFile)) {
+          try {
+            // try deleting it
+            fs.unlinkSync(desktopFile);
+          } catch (err) {
+            // Log an error if the delete fails
+            console.log('Error deleting the file', err);
+          }
+        }
+      }
+
+      // Bind click events to the elements on the page so they run the correct functions
+      saveButton.addEventListener('click', save);
+      loadButton.addEventListener('click', load);
+      deleteButton.addEventListener('click', deleteFile);
+    </script>
+  </body>
+</html>
